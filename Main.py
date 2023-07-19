@@ -441,5 +441,5 @@ if __name__ == '__main__':
     app.run(port=5000, debug=False)
 
 '''
-
+python -m uvicorn Main:app --host 0.0.0.0 --port $PORT--reload
 '''
