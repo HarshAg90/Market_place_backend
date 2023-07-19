@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Initialize Firebase credentials
-cred = credentials.Certificate("backend/service_key.json")
+cred = credentials.Certificate("service_key.json")
 firebase_admin.initialize_app(cred, {
     'storageBucket': 'cocmarketplace-6de0e.appspot.com'
 })
