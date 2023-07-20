@@ -4,6 +4,7 @@ from firebase_admin import firestore
 from firebase_admin import storage,credentials, auth
 import stripe
 import json
+import os
 from flask_cors import CORS
 
 
@@ -18,6 +19,10 @@ firebase_admin.initialize_app(cred, {
 })
 db = firestore.client()
 bucket = storage.bucket()
+
+stripe.api_key = 'sk_test_51NTe9USEwRY11GwhYoQ7oD9ezip8Rj35dscC7t5kTbI2vBQLhD8kBGsnwxVe4LEVVa9pYDxRjC7tWFGjhz85X0hF00WOhG5bGW'
+
+
 
 def delete_item(id):
     document_id = id
@@ -60,6 +65,12 @@ def check_user_exists(uid):
             print("Error occurred:", e)
             return False
 
+@app.route('/',methods=['GET'])
+def user_profile():
+    return jsonify({'Status': 'Marketplace api Online'}), 200
+
+
+    
 @app.route('/profile/<id>',methods=['GET'])
 def user_profile(id):
     uid = id
@@ -337,25 +348,7 @@ def add_to_owned_accounts():
     else:
         return {'error': 'Document not found'},401
 
-stripe.api_key = 'sk_test_51NTe9USEwRY11GwhYoQ7oD9ezip8Rj35dscC7t5kTbI2vBQLhD8kBGsnwxVe4LEVVa9pYDxRjC7tWFGjhz85X0hF00WOhG5bGW'
 
-# Example product database
-db_pretend = {
-    'product1': {
-        'name': 'Product 1',
-        'price': 10.0,
-        'currency': 'usd',
-        'description': 'Example product 1',
-        'image_url': 'https://example.com/product1.jpg'
-    },
-    'product2': {
-        'name': 'Product 2',
-        'price': 20.0,
-        'currency': 'usd',
-        'description': 'Example product 2',
-        'image_url': 'https://example.com/product2.jpg'
-    }
-}
 
 @app.route('/create-checkout-link', methods=['POST'])
 def create_checkout_link():
@@ -411,34 +404,34 @@ def create_checkout_link():
 
 # http://127.0.0.1:5000/webhook
 
-@app.route('/webhook', methods=['POST'])
-def handle_webhook():
-    payload = request.data
+# @app.route('/webhook', methods=['POST'])
+# def handle_webhook():
+#     payload = request.data
 
-    try:
-        event = stripe.Event.construct_from(
-            json.loads(payload), stripe.api_key
-        )
+#     try:
+#         event = stripe.Event.construct_from(
+#             json.loads(payload), stripe.api_key
+#         )
 
-        if event.type == 'checkout.session.completed':
-            session = event.data.object
-            product_id = session.metadata.get('product_id')
-            print("sessoion complete trigger")
-            print("sessoion - ", session)
-            print("product id - ", product_id)
-            # Trigger your callback function here using the product_id
-            # For example:
-            # callback_function(product_id)
+#         if event.type == 'checkout.session.completed':
+#             session = event.data.object
+#             product_id = session.metadata.get('product_id')
+#             print("sessoion complete trigger")
+#             print("sessoion - ", session)
+#             print("product id - ", product_id)
+#             # Trigger your callback function here using the product_id
+#             # For example:
+#             # callback_function(product_id)
 
-    except ValueError as e:
-        # Invalid payload
-        return jsonify({'error': str(e)}), 400
+#     except ValueError as e:
+#         # Invalid payload
+#         return jsonify({'error': str(e)}), 400
 
-    return jsonify({'success': True}), 200
+#     return jsonify({'success': True}), 200
 
-# Run the Flask app
+port = int(os.environ.get('PORT', 8080))
 if __name__ == '__main__':
-    app.run(port=5000, debug=False)
+    app.run(threaded=True, host='0.0.0.0', port=port)
 
 '''
 python -m uvicorn Main:app --host 0.0.0.0 --port $PORT--reload
