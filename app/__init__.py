@@ -66,11 +66,11 @@ def check_user_exists(uid):
             return False
 
 @app.route('/',methods=['GET'])
-def user_profile():
+def home():
     return jsonify({'Status': 'Marketplace api Online'}), 200
 
 
-    
+
 @app.route('/profile/<id>',methods=['GET'])
 def user_profile(id):
     uid = id
