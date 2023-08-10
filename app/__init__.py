@@ -401,6 +401,56 @@ def create_checkout_link():
     return jsonify({'checkout_link': session_url}), 200
 
 
+@app.route('/reviews', methods=['POST'])
+def add_review():
+    data = request.get_json()
+    review_data = data.get('review')
+    
+
+    import datetime
+    review_data["date"] = datetime.datetime.now().strftime("%dth %b %Y")
+    reviews_ref = db.collection("reviews")
+    reviews_ref.add(review_data)
+    return jsonify({'success': True}), 200
+
+
+# Function to remove a customer review by document ID
+@app.route('/reviews', methods=['DELETE'])
+def remove_review_by_id():
+    doc_id = "random_id"
+    db = firestore.client()
+    review_ref = db.collection("reviews").document(doc_id)
+    review_ref.delete()
+    return jsonify({'success': True}), 200
+
+    # # Call the function to remove a review by its document ID
+    # doc_id_to_remove = "your_document_id_here"
+    # remove_review_by_id(doc_id_to_remove)
+
+# Function to get all customer reviews
+@app.route('/reviews', methods=['GET'])
+def get_reviews():
+    db = firestore.client()
+    reviews_ref = db.collection("reviews")
+    reviews = reviews_ref.stream()
+
+    review_list = []
+    for review in reviews:
+        review_data = review.to_dict()
+        review_data["id"] = review.id
+        review_list.append(review_data)
+
+    # return review_list
+
+    return jsonify({'success': True,"review":review_list}), 200
+
+    # # Call the function to get all reviews
+    # all_reviews = get_reviews()
+    # print(all_reviews)
+
+
+
+
 
 # http://127.0.0.1:5000/webhook
 
@@ -429,10 +479,16 @@ def create_checkout_link():
 
 #     return jsonify({'success': True}), 200
 
+
+
+
+
+
+
 port = int(os.environ.get('PORT', 8080))
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=port)
-
+# app.run(threaded=True, host='0.0.0.0', port=port)
 '''
 python -m uvicorn Main:app --host 0.0.0.0 --port $PORT--reload
 '''
