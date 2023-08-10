@@ -91,7 +91,7 @@ def user_profile(id):
     # Retrieve the first matching document
     for doc in user_docs:
         res = doc.to_dict()
-        if uid == 'HMPFyv15ZISU0B16nMCBrTKbv0p2':
+        if uid == 'HMPFyv15ZISU0B16nMCBrTKbv0p2' or uid == '4pWkMBCKlFPJU8BVWiiZeEfTTtZ2':
             res['type'] = "admin"
         else:
             res['type'] = 'user'
@@ -137,7 +137,7 @@ def add_data():
             return jsonify({'error': 'Invalid data or missing fields'}), 400
     except:
         return jsonify({'error': 'Invalid data or missing fields'}), 400
-    if uid == "HMPFyv15ZISU0B16nMCBrTKbv0p2":
+    if uid == "HMPFyv15ZISU0B16nMCBrTKbv0p2" or uid == '4pWkMBCKlFPJU8BVWiiZeEfTTtZ2':
         if title and description and email and password and Type and price and image1 and image2:
             # Upload image1 to Firebase Storage
             image1_blob = bucket.blob(image1.filename)
