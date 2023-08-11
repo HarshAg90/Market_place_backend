@@ -380,8 +380,8 @@ def create_checkout_link():
 
     # Create a Stripe checkout session
     session = stripe.checkout.Session.create(
-        success_url = 'http://127.0.0.1:3000/success?id='+product_id+'&uid='+Uid,
-        cancel_url  = 'http://127.0.0.1:3000/cancel',
+        success_url = 'https://coc-client.onrender.com/success?id='+product_id+'&uid='+Uid,
+        cancel_url  = 'https://coc-client.onrender.com/cancel',
         payment_method_types=['card'],
         mode='payment',
         line_items=[{
