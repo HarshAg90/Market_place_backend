@@ -320,6 +320,9 @@ def add_to_owned_accounts():
             return jsonify({'error': 'Invalid data or missing uid'}), 400
     except:
         return jsonify({'error': 'Invalid data or missing uid'}), 400
+    return add_acc_fn(user_id=user_id, document_id=document_id)
+
+def add_acc_fn(user_id, document_id):
     user_ref = db.collection('users')
     querry = user_ref.select(field_paths=[]).where('uid', '==', user_id)
     user_doc = querry.get()
@@ -347,6 +350,7 @@ def add_to_owned_accounts():
             'message': 'Document added to owned accounts successfully'},200
     else:
         return {'error': 'Document not found'},401
+
 
 
 
@@ -449,6 +453,87 @@ def get_reviews():
     # print(all_reviews)
 
 
+from coinbase_commerce.client import Client
+API_KEY = "9b28c755-9f97-4daf-86ae-16941ac452f1"
+client = Client(api_key=API_KEY)
+ 
+@app.route('/crypto_pay_url', methods=['POST'])
+def coinbase_pay():
+    data = request.get_json()
+    product_id = data.get('product_id')
+    Uid = data.get('Uid')
+    # product = db_pretend.get(product_id)
+
+    data_ref = db.collection('data').document(product_id)
+    data_doc = data_ref.get()
+
+    if data_doc.exists:
+        product = data_doc.to_dict()
+    else:
+        product = False
+        return {"staus":False},500
+    if not product:
+        return jsonify({'error': 'Product not found'}), 404
+    price_data = {
+        'currency': 'usd',
+        'unit_amount': int(product['price'] * 100),
+        'product_data': {
+            'name': product['title'],
+            'description': product['description'],
+            'images': [product['image1_url']]
+        }
+    }
+    charge_info = {
+        "name": product['title'],
+        "description": product['description'],
+        "local_price": {
+            "amount": str(int(product['price'] * 100)),
+            "currency": "USD"
+        },
+        "pricing_type": "fixed_price",
+        "metadata":{
+            "user_id":Uid,
+            "product_id":product_id
+        }
+
+    }
+    charge = client.charge.create(**charge_info)
+    print(charge)
+    return jsonify({'checkout_link': charge}), 20
+
+
+
+WEBHOOK_KEY = 'c462ab9c-6567-4be2-abf8-d2451c328846'
+# using Flask
+payemnt_status = "not made"
+@app.route('/webhooks', methods=['POST'])
+def webhooks():
+    global payemnt_status
+    # event payload
+    request_data = request.data.decode('utf-8')
+    # webhook signature
+    request_sig = request.headers.get('X-CC-Webhook-Signature', None)
+
+    try:
+        # signature verification and event object construction
+        event = Webhook.construct_event(request_data, request_sig, WEBHOOK_SECRET)
+
+        if event.type == 'charge:pending':
+            print("pending")
+            payemnt_status = "pending"
+
+        if event.type == 'charge:confirmed':
+            print('confirmed')
+            payemnt_status = 'confirmed'
+
+        if event.type == 'charge:failed':
+            print('failed')
+            payemnt_status = 'failed'
+    except (WebhookInvalidPayload, SignatureVerificationError) as e:
+        return str(e), 400
+
+    print("Received event: id={id}, type={type}".format(id=event.id, type=event.type))
+    return 'success', 200
 
 
 
@@ -478,12 +563,6 @@ def get_reviews():
 #         return jsonify({'error': str(e)}), 400
 
 #     return jsonify({'success': True}), 200
-
-
-
-
-
-
 
 port = int(os.environ.get('PORT', 8080))
 if __name__ == '__main__':

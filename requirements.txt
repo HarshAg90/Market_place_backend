@@ -4,3 +4,4 @@ flask_cors
 stripe
 uvicorn
 gunicorn 
+coinbase_commerce
